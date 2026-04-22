@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Canadian Mortgage Calculator</title>
+    <meta
+      name="description"
+      content="Compare up to five Canadian mortgage scenarios with FCAC-style inputs, prepayments, and payment schedules."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="./calculator.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Canadian Mortgage Calculator</p>
+          <h1>Compare up to five mortgage scenarios.</h1>
+          <p class="hero__lead">
+            This calculator mirrors the FCAC workflow so you can compare rates, terms, payment
+            frequencies, and prepayment plans side by side without getting lost in the jargon.
+          </p>
+          <div class="hero__chips" aria-label="Mortgage glossary">
+            <span>Mortgage amount = what you borrow</span>
+            <span>Term = your current contract length</span>
+            <span>Amortization = total payoff timeline</span>
+            <span>Prepayment = extra principal you pay early</span>
+          </div>
+        </div>
+        <aside class="hero__guide" aria-labelledby="guide-title">
+          <p class="hero__guide-label" id="guide-title">Quick guide</p>
+          <ol class="hero__steps">
+            <li>Set the mortgage details for the first scenario.</li>
+            <li>Add or duplicate scenarios to compare different rates, terms, or prepayments.</li>
+            <li>Use the comparison board and schedules to see cost, balance, and payoff changes.</li>
+          </ol>
+        </aside>
+      </header>
+
+      <main class="workspace">
+        <section class="workspace__toolbar" aria-label="Scenario tools">
+          <div>
+            <p class="workspace__label">Scenario workspace</p>
+            <h2>Side-by-side comparison</h2>
+            <p class="workspace__hint" id="scenario-count-text"></p>
+            <p class="workspace__status" id="workspace-status" hidden></p>
+          </div>
+          <div class="workspace__actions">
+            <button class="button button--ghost" id="add-scenario-button" type="button">
+              Add scenario
+            </button>
+            <button class="button button--primary" id="export-button" type="button">
+              Export CSV
+            </button>
+          </div>
+        </section>
+
+        <section class="scenario-grid" id="scenario-grid" aria-live="polite"></section>
+
+        <section class="comparison" aria-labelledby="comparison-title">
+          <div class="comparison__header">
+            <div>
+              <p class="workspace__label">At-a-glance</p>
+              <h2 id="comparison-title">Comparison board</h2>
+            </div>
+            <p class="comparison__copy">
+              The board keeps the most important outcomes lined up so you can compare the scenarios
+              before diving into the full schedules.
+            </p>
+          </div>
+          <div class="comparison__table-wrap" id="comparison-table-wrap"></div>
+        </section>
+
+        <section class="footnotes" aria-labelledby="footnotes-title">
+          <h2 id="footnotes-title">Notes</h2>
+          <p>
+            These calculations follow Canadian mortgage conventions with semi-annual compounding,
+            FCAC-style payment frequencies, and the prepayment options shown on the public FCAC
+            mortgage calculator. Lenders may still calculate some values differently.
+          </p>
+          <p>
+            The CSV export includes every scenario’s inputs, summary values, yearly schedule, and
+            payment-by-payment schedule in one file.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <template id="scenario-template">
+      <article class="scenario-card">
+        <header class="scenario-card__header">
+          <div class="scenario-card__title-wrap">
+            <label class="scenario-card__name-label">
+              Scenario name
+              <input class="scenario-card__name-input" data-field="name" type="text" maxlength="40" />
+            </label>
+            <p class="scenario-card__subtitle"></p>
+          </div>
+          <div class="scenario-card__actions">
+            <button class="button button--inline" data-action="duplicate" type="button">Duplicate</button>
+            <button class="button button--inline" data-action="remove" type="button">Remove</button>
+          </div>
+        </header>
+
+        <div class="scenario-card__body">
+          <section class="scenario-card__pane">
+            <div class="section-heading">
+              <p class="section-heading__kicker">Payment plan</p>
+              <h3>Main mortgage inputs</h3>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Mortgage amount</span>
+                <div class="field__input-wrap">
+                  <span class="field__prefix">$</span>
+                  <input data-field="mortgageAmount" inputmode="decimal" min="0" step="0.01" type="number" />
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Interest rate</span>
+                <div class="field__input-wrap">
+                  <input data-field="interestRate" inputmode="decimal" min="0" step="0.01" type="number" />
+                  <span class="field__suffix">%</span>
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Amortization years</span>
+                <select data-field="amortizationYears"></select>
+              </label>
+
+              <label class="field">
+                <span>Amortization months</span>
+                <select data-field="amortizationMonths"></select>
+              </label>
+
+              <label class="field field--wide">
+                <span>Payment frequency</span>
+                <select data-field="paymentFrequency"></select>
+              </label>
+
+              <label class="field">
+                <span>Term</span>
+                <select data-field="termYears"></select>
+              </label>
+            </div>
+          </section>
+
+          <section class="scenario-card__pane">
+            <div class="section-heading">
+              <p class="section-heading__kicker">Prepayment plan</p>
+              <h3>Optional extra principal</h3>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Prepayment amount</span>
+                <div class="field__input-wrap">
+                  <span class="field__prefix">$</span>
+                  <input data-field="prepaymentAmount" inputmode="decimal" min="0" step="0.01" type="number" />
+                </div>
+              </label>
+
+              <label class="field field--wide">
+                <span>Prepayment frequency</span>
+                <select data-field="prepaymentFrequency"></select>
+              </label>
+
+              <label class="field">
+                <span>Start with payment</span>
+                <input data-field="startWithPayment" inputmode="numeric" min="1" step="1" type="number" />
+              </label>
+            </div>
+
+            <p class="field-note">
+              “Start with payment” is the payment number where the extra principal begins. For a
+              one-time prepayment, that is the single payment where it happens.
+            </p>
+          </section>
+
+          <section class="scenario-card__results"></section>
+        </div>
+      </article>
+    </template>
+  </body>
+</html>
